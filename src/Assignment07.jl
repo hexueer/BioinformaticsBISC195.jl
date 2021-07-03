@@ -9,10 +9,7 @@ export normalizeDNA,
 
 # # uncomment the following line if you intend to use BioSequences types
 using BioSequences
-import BioSequences: composition
-import BioSequences: gc_content
-import BioSequences: complement
-import BioSequences: reverse_complement
+#import BioSequences: composition, gc_content, complement, reverse_complement
 
 """
     normalizeDNA(::AbstractString)
@@ -22,12 +19,26 @@ Ensures that a sequence only contains valid bases
 Returns a LongDNASeq.
 """
 function normalizeDNA(seq)
-    seq = uppercase(seq)
+    seq = uppercase(string(seq))
     for base in seq
         # note: `N` indicates an unknown base
         occursin(base, "AGCTN") || error("invalid base $base")
     end
-    return LongDNASeq(seq) # change to `return LongDNASeq(seq)` if you want to try to use BioSequences types
+    return seq # change to `return LongDNASeq(seq)` if you want to try to use BioSequences types
+end
+
+"""
+    basecomposition(sequence)
+
+Counts the number of each type of base (A, C, G, T, N)
+in a DNA sequence and returns a dictionary of those counts
+"""
+function composition(seq)
+    counts = Dict('A' => 0, 'C' => 0, 'G' => 0, 'T' => 0, 'N' => 0)
+    for base in normalizeDNA(seq)
+        counts[base] += 1
+    end
+    return counts
 end
 
 # """
@@ -37,35 +48,31 @@ end
 # The GC ratio is the total number of G and C bases divided by the total length of the sequence.
 # """
 # function gc_content(seq::LongDNASeq)
-#     seq = composition(normalizeDNA(seq))        
+#     seq = composition(seq)        
 #     return (seq[DNA_C] + seq[DNA_G]) / (seq[DNA_A] + seq[DNA_C] + seq[DNA_G] + seq[DNA_T] + seq[DNA_N])
 # end
 
-# function gc_content(seq::AbstractString)
-#     A,C,G,T = basecomposition(seq)        
-#     return (C + G) / (A + C + G + T)
-# end
+function gc_content(seq::AbstractString)
+    counts = composition(seq)        
+    return (counts['C'] + counts['G']) / (counts['A'] + counts['C'] + counts['G'] + counts['T'] + counts['N'])
+end
 
-# function complement(base::Char)
-#     comp = Dict('A'=>'T',
-#                 'T'=>'A',
-#                 'G'=>'C',
-#                 'C'=>'G',
-#                 'N'=>'N')
-#     return comp[base]
-# end
+function complement(base::Char)
+    comp = Dict('A'=>'T',
+                'T'=>'A',
+                'G'=>'C',
+                'C'=>'G',
+                'N'=>'N')
+    return comp[base]
+end
 
-# function complement(seq::AbstractString)
-#     seq = uppercase(string(seq))
-#     for base in seq
-#         occursin(base, "AGCTN") || error("invalid base $base")
-#     end
-#     return map(complement, seq)
-# end
+function complement(seq::AbstractString)
+    return map(complement, normalizeDNA(seq))
+end
 
-# function reverse_complement(seq::AbstractString)
-#     return reverse(complement(seq))
-# end
+function reverse_complement(seq::AbstractString)
+    return reverse(complement(seq))
+end
 
 """
     function parse_fasta(path)
@@ -81,13 +88,11 @@ function parse_fasta(path)
     headers, sequences, tempSeq = [], [], []
 	for line in eachline(path)
 		if startswith(line, '>')
-			push!(headers, strip(line[2:end]))
+			push!(headers, line[2:end])
 			isempty(tempSeq) || push!(sequences, join(tempSeq))
 			tempSeq = []
 		else
-            for base in uppercase(line)
-                occursin(base, "AGCTN") || error("invalid base $base")
-            end
+            line = normalizeDNA(line)
 			push!(tempSeq, line)
 		end
 	end
