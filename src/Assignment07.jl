@@ -7,9 +7,9 @@ export normalizeDNA,
        reverse_complement,
        parse_fasta
 
-# # uncomment the following line if you intend to use BioSequences types
-using BioSequences
-#import BioSequences: composition, gc_content, complement, reverse_complement
+# uncomment the following line if you intend to use BioSequences types
+# using BioSequences
+# import BioSequences: composition, gc_content, complement, reverse_complement
 
 """
     normalizeDNA(::AbstractString)
@@ -92,8 +92,7 @@ function parse_fasta(path)
 			isempty(tempSeq) || push!(sequences, join(tempSeq))
 			tempSeq = []
 		else
-            line = normalizeDNA(line)
-			push!(tempSeq, line)
+			push!(tempSeq, normalizeDNA(line))
 		end
 	end
 	push!(sequences, join(tempSeq)) 
