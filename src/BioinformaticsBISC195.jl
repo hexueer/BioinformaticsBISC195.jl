@@ -1,4 +1,4 @@
-module Assignment07
+module BioinformaticsBISC195
 
 export normalizeDNA,
        composition,
@@ -99,4 +99,4 @@ function parse_fasta(path)
 	return headers, sequences
 end
 
-end # module Assignment07
+end # module BioinformaticsBISC195
