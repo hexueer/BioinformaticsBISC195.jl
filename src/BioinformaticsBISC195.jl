@@ -20,21 +20,22 @@ Returns a LongDNASeq.
 """
 function normalizeDNA(seq)
     seq = uppercase(string(seq))
+    newSeq = ""
     for base in seq
         # note: `N` indicates an unknown base
-        occursin(base, "AGCTNY") || error("invalid base $base")
+        occursin(base, "AGCTN") ? (newSeq = newSeq * base) : (newSeq = newSeq * 'N')
     end
-    return seq # change to `return LongDNASeq(seq)` if you want to try to use BioSequences types
+    return newSeq # change to `return LongDNASeq(seq)` if you want to try to use BioSequences types
 end
 
 """
     basecomposition(sequence)
 
-Counts the number of each type of base (A, C, G, T, N, Y)
+Counts the number of each type of base (A, C, G, T, N)
 in a DNA sequence and returns a dictionary of those counts
 """
 function composition(seq)
-    counts = Dict('A' => 0, 'C' => 0, 'G' => 0, 'T' => 0, 'N' => 0, 'Y' => 0)
+    counts = Dict('A' => 0, 'C' => 0, 'G' => 0, 'T' => 0, 'N' => 0)
     for base in normalizeDNA(seq)
         counts[base] += 1
     end
@@ -54,7 +55,7 @@ end
 
 function gc_content(seq::AbstractString)
     counts = composition(seq)        
-    return (counts['C'] + counts['G']) / (counts['A'] + counts['C'] + counts['G'] + counts['T'] + counts['N'] + counts['Y'])
+    return (counts['C'] + counts['G']) / (counts['A'] + counts['C'] + counts['G'] + counts['T'] + counts['N'])
 end
 
 function complement(base::Char)
@@ -62,8 +63,7 @@ function complement(base::Char)
                 'T'=>'A',
                 'G'=>'C',
                 'C'=>'G',
-                'N'=>'N',
-                'Y'=>'Y')
+                'N'=>'N')
     return comp[base]
 end
 
