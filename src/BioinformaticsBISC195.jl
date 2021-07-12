@@ -61,7 +61,7 @@ The GC ratio is the total number of G and C bases divided by the total length of
 
 function gc_content(seq::AbstractString)
     counts = composition(seq)        
-    return (counts['C'] + counts['G']) / (counts['A'] + counts['C'] + counts['G'] + counts['T'] + counts['N'])
+    return (counts['C'] + counts['G']) / (counts['A'] + counts['C'] + counts['G'] + counts['T'])
 end
 
 """
