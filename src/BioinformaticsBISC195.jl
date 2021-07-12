@@ -23,7 +23,13 @@ function normalizeDNA(seq)
     newSeq = ""
     for base in seq
         # note: `N` indicates an unknown base
-        occursin(base, "AGCTN") ? (newSeq = newSeq * base) : (newSeq = newSeq * 'N')
+        if occursin(base, "AGCTN")
+            newSeq = newSeq * base
+        elseif occursin(base, "RYSWKMBDHV")
+            newSeq = newSeq * 'N'
+        else
+            error("Invalid base $base encountered")
+        end
     end
     return newSeq # change to `return LongDNASeq(seq)` if you want to try to use BioSequences types
 end
@@ -78,11 +84,11 @@ function complement(seq::AbstractString)
     return map(complement, normalizeDNA(seq))
 end
 
-```
+"""
     reverse_complement(seq::AbstractString)
 
 Takes a sequence and returns the reverse complement of that sequence.
-```
+"""
 function reverse_complement(seq::AbstractString)
     return reverse(complement(seq))
 end
