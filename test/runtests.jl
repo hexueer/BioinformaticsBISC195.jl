@@ -76,6 +76,22 @@ using Test
         @test length(cov2[2]) == 8
     end #parse_fasta
 
+    @testset "getKmers" begin
+        @test getKmers("ggg", 3) == Set(["GGG"])
+        @test getKmers("ATATATATA", 4) == Set(["TATA", "ATAT"])
+        @test getKmers("GTAGAGCTGT", 6) == Set(["GTAGAG", "TAGAGC", "AGAGCT", "GAGCTG", "AGCTGT"])
+        @test getKmers("GTAGAGCTGT", 8) == Set(["GTAGAGCT", "TAGAGCTG", "AGAGCTGT"])
+        @test_throws Exception getKmers("A", 2)
+        @test_throws Exception getKmers("CXG", 2)
+    end # getKmers
+    
+    @testset "getKmerDist" begin
+        kmer1, kmer2, kmer3 = ["GGG", "CCAT"], ["ATAT", "GGG", "ATCG"], ["TAG"]
+        @test getKmerDist(kmer1, kmer2) == 0.75
+        @test getKmerDist(kmer1, kmer3) == 1
+        @test getKmerDist(kmer2, kmer2) == 0
+    end # getKmerDist
+
 end # strings
 
 # @testset "Using BioSequences" begin

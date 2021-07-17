@@ -5,7 +5,9 @@ export normalizeDNA,
        gc_content,
        complement,
        reverse_complement,
-       parse_fasta
+       parse_fasta,
+       getKmers,
+       getKmerDist
 
 # uncomment the following line if you intend to use BioSequences types
 # using BioSequences
@@ -119,23 +121,23 @@ function parse_fasta(path)
 end
 
 """
-   kmercount(sequence, k)
+    getKmers(sequence, k)
 
-Finds and returns a vector of all kmers in a sequence
+Takes a sequence and integer k and returns a set of all unique kmers of length k.
 
 Examples
 ≡≡≡≡≡≡≡≡≡≡
 
-    julia> kmercount("ggg", 3)
-    Dict{Any,Any} with 1 entry:
-    "GGG" => 1
+    julia> getKmers("ggg", 3)
+    Set{Any} with 1 element:
+    "GGG"
 
-    julia> kmercount("ATATATATA", 4)
-    Dict{Any,Any} with 2 entries:
-    "TATA" => 3
-    "ATAT" => 3
+    julia> getKmers("ATATATATA", 4)
+    Set{Any} with 2 elements:
+    "TATA"
+    "ATAT"
 
-    julia> kmercount("A", 2)
+    julia> getKmers("A", 2)
     ERROR: k must be a positive integer less than the length of the sequence
 """
 function  getKmers(sequence, k)
@@ -156,6 +158,7 @@ end
     getKmerDist(kmer1, kmer2)
 
 Takes two kmer sets and calculates the distance between them.
+**** Assumes that kmer sets are normalized.
 
 The distance will always be a positive number between 0 and 1 
 where identical things have a distance of 0 
