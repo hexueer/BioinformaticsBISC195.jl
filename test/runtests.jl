@@ -92,6 +92,30 @@ using Test
         @test getKmerDist(kmer2, kmer2) == 0
     end # getKmerDist
 
+    @testset "getKmerCount" begin
+        @test getKmers("ggg", 3) == Dict("GGG" => 1)
+        @test getKmers("ATATATATA", 4) == Dict("TATA" => 3, "ATAT" => 3)
+        @test getKmers("GTAGAGCTGT", 6) == Dict("GTAGAG" => 1, "TAGAGC" => 1, "AGAGCT" => 1, "GAGCTG" => 1, "AGCTGT" => 1)
+        @test getKmers("GTAGAGCTGT", 8) == Dict("GTAGAGCT" => 1, "TAGAGCTG" => 1, "AGAGCTGT" => 1)
+        @test_throws Exception getKmerCount("A", 2)
+        # Assumes data is normalized, so no exception tests besides the one above
+        # for our purposes, will be running on parse_fasta-processed data so it is guaranteed pre-normalized
+    end # getKmerCount
+
+    @testset "getHeaderAttrib" begin
+        @test getHeaderAttrib("NC_045512.2 |Severe acute respiratory syndrome-related coronavirus||China|2019-12", "|", [4,5]) == ["China", "2019-12"]
+        @test getHeaderAttrib("MZ413975.1 |Severe acute respiratory syndrome-related coronavirus|oronasopharynx|Bangladesh: Sylhet|2020-12-31", "|", [4,5]) == ["Bangladesh: Sylhet", "2020-12-31"]
+        @test getHeaderAttrib("MZ042984.1 |Severe acute respiratory syndrome-related coronavirus|oronasopharynx|Egypt|2021-04-09", "|", [1,3,5]) == ["MZ042984.1", "oronasopharynx", "2021-04-09"]
+        @test_throws Exception getHeaderAttrib("A|B|C", 6)
+    end # getHeaderAttrib
+
+    @testset "getCountryFromLocation" begin
+        @test getCountryFromLocation("Argentina") == "Argentina"
+        @test getCountryFromLocation("Pakistan: Gilgit Baltistan") == "Pakistan"
+        @test getCountryFromLocation("Japan: Kanagawa, Sagamihara") == "Japan"
+        @test getCountryFromLocation("") == ""
+    end # getCountryFromLocation
+
 end # strings
 
 # @testset "Using BioSequences" begin
