@@ -7,11 +7,10 @@ using Test
     
     @testset "normalizeDNA" begin
         @test normalizeDNA("aatgn") == "AATGN"
+        @test normalizeDNA("C") isa String
         @test_throws Exception normalizeDNA("ZCA")
         @test_throws Exception normalizeDNA(42)
-        c = normalizeDNA('C') 
-        @test c == "C"
-        @test typeof(c) == String
+        @test_throws Exception normalizeDNA('C')
     end # normalizeDNA
 
     @testset "composition" begin
@@ -86,20 +85,18 @@ using Test
     end # getKmers
     
     @testset "getKmerDist" begin
-        kmer1, kmer2, kmer3 = ["GGG", "CCAT"], ["ATAT", "GGG", "ATCG"], ["TAG"]
+        kmer1, kmer2, kmer3 = Set(["GGG", "CCAT"]), Set(["ATAT", "GGG", "ATCG"]), Set(["TAG"])
         @test getKmerDist(kmer1, kmer2) == 0.75
         @test getKmerDist(kmer1, kmer3) == 1
         @test getKmerDist(kmer2, kmer2) == 0
     end # getKmerDist
 
     @testset "getKmerCount" begin
-        @test getKmers("ggg", 3) == Dict("GGG" => 1)
-        @test getKmers("ATATATATA", 4) == Dict("TATA" => 3, "ATAT" => 3)
-        @test getKmers("GTAGAGCTGT", 6) == Dict("GTAGAG" => 1, "TAGAGC" => 1, "AGAGCT" => 1, "GAGCTG" => 1, "AGCTGT" => 1)
-        @test getKmers("GTAGAGCTGT", 8) == Dict("GTAGAGCT" => 1, "TAGAGCTG" => 1, "AGAGCTGT" => 1)
+        @test getKmerCount("ggg", 3) == Dict("GGG" => 1)
+        @test getKmerCount("ATATATATA", 4) == Dict("TATA" => 3, "ATAT" => 3)
+        @test getKmerCount("GTAGAGCTGT", 6) == Dict("GTAGAG" => 1, "TAGAGC" => 1, "AGAGCT" => 1, "GAGCTG" => 1, "AGCTGT" => 1)
+        @test getKmerCount("GTAGAGCTGT", 8) == Dict("GTAGAGCT" => 1, "TAGAGCTG" => 1, "AGAGCTGT" => 1)
         @test_throws Exception getKmerCount("A", 2)
-        # Assumes data is normalized, so no exception tests besides the one above
-        # for our purposes, will be running on parse_fasta-processed data so it is guaranteed pre-normalized
     end # getKmerCount
 
     @testset "getHeaderAttrib" begin
@@ -109,12 +106,19 @@ using Test
         @test_throws Exception getHeaderAttrib("A|B|C", 6)
     end # getHeaderAttrib
 
-    @testset "getCountryFromLocation" begin
-        @test getCountryFromLocation("Argentina") == "Argentina"
-        @test getCountryFromLocation("Pakistan: Gilgit Baltistan") == "Pakistan"
-        @test getCountryFromLocation("Japan: Kanagawa, Sagamihara") == "Japan"
-        @test getCountryFromLocation("") == ""
-    end # getCountryFromLocation
+    @testset "filterByEmptyAttrib" begin
+        testHeader = ["T|T|T||T", "T|T||T|T", "T||T||T"]
+        testSeq = ["1", "2", "3"]
+        noDateHeader = ["MZ562753.1 |Severe acute respiratory syndrome-related coronavirus||India: Madhya Pradesh|2021-02-08", "AY278554.2 |Severe acute respiratory syndrome-related coronavirus||China: Hong Kong, Prince of Wales Hospital|"]
+        noDateSeq = ["AATG", "GTAC"]
+
+        @test filterByEmptyAttrib(testHeader, testSeq, "|", 1) == (["T|T|T||T", "T|T||T|T", "T||T||T"], ["1", "2", "3"])
+        @test filterByEmptyAttrib(testHeader, testSeq, "|", 2) == (["T|T|T||T", "T|T||T|T"], ["1", "2"])
+        @test filterByEmptyAttrib(testHeader, testSeq, "|", 3) == (["T|T|T||T", "T||T||T"], ["1", "3"])
+        @test filterByEmptyAttrib(testHeader, testSeq, "|", 4) == (["T|T||T|T"], ["2"])
+        @test filterByEmptyAttrib(noDateHeader, noDateSeq, "|", 5) == (["MZ562753.1 |Severe acute respiratory syndrome-related coronavirus||India: Madhya Pradesh|2021-02-08"], ["AATG"])
+        @test_throws Exception filterByEmptyAttrib(noDateHeader, testSeq, "|", 3)
+    end # filterByEmptyAttrib
 
 end # strings
 

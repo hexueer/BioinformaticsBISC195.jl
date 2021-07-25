@@ -10,7 +10,7 @@ export normalizeDNA,
        getKmerDist,
        getKmerCount,
        getHeaderAttrib,
-       getCountryFromLocation
+       filterByEmptyAttrib
 
 # uncomment the following line if you intend to use BioSequences types
 # using BioSequences
@@ -179,7 +179,6 @@ end
 Finds all kmers in a sequence,
 returning a dictionary of those kmers
 and the number of times they appear in the sequence.
-Assumes that sequence is normalized.
 
 Examples
 ≡≡≡≡≡≡≡≡≡≡
@@ -196,7 +195,8 @@ Examples
     julia> getKmerCount("A", 2)
     ERROR: k must be a positive integer less than the length of the sequence
 """
-function  getKmerCount(sequence::AbstractString, k::Int)
+function  getKmerCount(sequence::AbstractString, k::Int64)
+    sequence = normalizeDNA(sequence)
     1 <= k <= length(sequence) || error("k must be a positive integer less than the length of the sequence")
     kmers = Dict() # initialize dictionary
     
@@ -220,21 +220,20 @@ end
 Takes a header, parses by the delimiter, and 
 returns the desired attributes according to the provided indices.
 """
-function  getHeaderAttrib(header::AbstractString, delimiter, attribInd::Array)
+function  getHeaderAttrib(header::AbstractString, delimiter, attribInds::Array)
     header = split(header, delimiter)
-    return [strip(header[ind]) for ind in attribInd]
+    return [strip(header[ind]) for ind in attribInds]
 end
 
 """
-    getCountryFromLocation(location::AbstractString)
+    filterByEmptyAttrib(headerVec, seqVec, delimiter, attribInd)
 
-Takes a header location and returns only the country name.
-Assumes that country name is the first substring before the first colon.
+Takes a header vector, sequence vector, delimiter, and an index for the header attribute 
 """
-function  getCountryFromLocation(location::AbstractString)
-    colonIndex = findfirst(':', location)
-    colonIndex === nothing || (location = location[1:colonIndex-1])
-    return location
+function  filterByEmptyAttrib(headerVec::Vector, seqVec::Vector, delimiter::AbstractString, attribInd::Int64)
+    length(headerVec) == length(seqVec) || error("the provided vectors are of mismatching length")
+    emptyAttribVec = findall(x -> strip(split(x, delimiter)[attribInd]) == "", headerVec)
+    return deleteat!(copy(headerVec), emptyAttribVec), deleteat!(copy(seqVec), emptyAttribVec)
 end
 
 end # module BioinformaticsBISC195
